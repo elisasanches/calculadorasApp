@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { evaluate } from 'mathjs';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-tab2',
@@ -13,9 +15,13 @@ export class Tab2Page {
   private ponto = false;
   private operacoes = ['+', '-', '*', '/'];
 
-  constructor() {}
+  constructor(public alertController: AlertController) {}
 
 public adicionarNumero(valor: string) {
+   if (this.resultado) {
+      this.apagarTudo();
+   }
+
   this.calculo = this.calculo + valor;
 }
 
@@ -28,8 +34,13 @@ public adicionarPonto() {
 }
 
 public adicionarOperacao(operador: string) {
-const ultimo = this.calculo.slice(-1);
 
+if (this.resultado) {
+  this.calculo = this.resultado.toString();
+  this.resultado = null;
+}
+
+const ultimo = this.calculo.slice(-1);
 if (this.operacoes.indexOf(ultimo) > -1) {
   return;
 }
@@ -51,5 +62,24 @@ public apagarUltimo() {
   }
   this.calculo = this.calculo.slice(0, -1);
 }
+
+public calcularResultado() {
+  try {
+      this.resultado = evaluate(this.calculo);
+  }catch(e) {
+    this.resultado = '';
+    this.presentAlert('ERRO!!!', 'Cálculo invalido, verifique!');
+    }
+  }
+
+  async presentAlert(titulo: string, mensagem: string) {
+    const alert = await this.alertController.create({
+      header: titulo,
+      message: mensagem,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
 
 }
